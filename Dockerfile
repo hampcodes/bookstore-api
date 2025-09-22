@@ -1,11 +1,17 @@
-# Etapa 1: construir el jar
-FROM eclipse-temurin:21-jdk AS builder
+# Imagen base con Java 21
+FROM eclipse-temurin:21-jdk AS build
+# Copiar código al contenedor
 WORKDIR /app
 COPY . .
+# Construir la aplicación (usa Maven Wrapper si lo tienes)
 RUN ./mvnw clean package -DskipTests
 
-# Etapa 2: imagen ligera de ejecución
-FROM eclipse-temurin:21-jre
+# -------- Imagen final --------
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
+# Copiar JAR desde la etapa anterior
+COPY --from=build /app/target/*.jar app.jar
+# Exponer el puerto
+EXPOSE 8080
+# Ejecutar la app
 ENTRYPOINT ["java","-jar","app.jar"]
